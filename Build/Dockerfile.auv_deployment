@@ -1,0 +1,92 @@
+#Copyright [2024] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2024 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#As of Isaac ROS 3.2, the following packages are configured in base for both architectures
+#TensorRT, LibNVInfer V10
+#CUDA Toolktit V12.6
+#Pytorch for CUDA V2.5.0
+
+#They also removed the user initialization process, which means each container will be responsible for it's own
+
+#Build Issac ROS Image
+#https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE}
+
+#Maintainer label
+LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
+LABEL version="3.0.0"
+
+ARG USERNAME=container-user
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG PLATFORM=amd64
+
+#Set user and home environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=${USERNAME}
+ENV HOME=/home/${USER}
+
+#Install all isaac ros packages used
+RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y ros-${ROS_DISTRO}-isaac-ros-gxf \
+    ros-${ROS_DISTRO}-isaac-ros-nitros ros-${ROS_DISTRO}-isaac-ros-managed-nitros \
+    ros-${ROS_DISTRO}-isaac-ros-nitros-topic-tools ros-${ROS_DISTRO}-isaac-ros-pynitros \
+    ros-humble-isaac-ros-nitros-image-type ros-humble-isaac-ros-nitros-imu-type \
+    && \
+    apt update && apt install -y ros-${ROS_DISTRO}-isaac-ros-nitros-bridge-ros2 \
+    ros-${ROS_DISTRO}-isaac-ros-visual-slam ros-${ROS_DISTRO}-isaac-ros-examples ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc \
+    ros-${ROS_DISTRO}-isaac-ros-zed ros-${ROS_DISTRO}-isaac-ros-yolov8 ros-${ROS_DISTRO}-isaac-ros-dnn-image-encoder \
+    ros-${ROS_DISTRO}-isaac-ros-tensor-rt ros-${ROS_DISTRO}-isaac-ros-nvblox ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc
+
+USER ${USER}
+WORKDIR ${HOME}/ros_ws/src
+
+#Install the ZED SDK
+RUN --mount=type=cache,target=/var/cache/apt \
+if [[ "${PLATFORM}" == "aarch64" ]] ; then \
+    sudo apt-get update && sudo apt-get install -y --no-install-recommends lsb-release wget less zstd udev apt-transport-https && \
+    wget -q --no-check-certificate -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.2/l4t36.3/jetsons && \
+    chmod +x ZED_SDK_Linux.run && ./ZED_SDK_Linux.run silent skip_od_module skip_python skip_drivers && \
+    sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so; \
+else \
+    sudo apt-get update && sudo apt-get install -y --no-install-recommends lsb-release wget \
+    less udev zstd build-essential cmake libpng-dev libgomp1 && \
+    wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.2/cu12/ubuntu22 && \
+    chmod +x ZED_SDK_Linux.run && sudo -u ${USER} ./ZED_SDK_Linux.run -- silent && \
+    sudo ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so; \
+fi && rm ZED_SDK_Linux.run && sudo rm -rf /usr/local/zed/resources/* && sudo rm -rf /var/lib/apt/lists/*
+
+#Clone open source drivers
+RUN git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git && \
+    cd ./zed-ros2-wrapper && git checkout -b local_branch adaaed8 && cd .. && \
+    git clone -b ros2 https://github.com/ros-drivers/nmea_navsat_driver.git && \
+    cd nmea_navsat_driver && git checkout -b local_branch 3efe940 && cd ..
+
+#Ensure other needed ROS2 packages are installed
+RUN --mount=type=cache,target=/var/cache/apt sudo apt update && sudo apt install -y python3-rosdep \
+    python3-rosinstall-generator python3-vcstool python3-rosinstall python3-sphinx build-essential \
+    ros-${ROS_DISTRO}-foxglove-bridge python3-sphinx ros-${ROS_DISTRO}-mavros \
+    ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-camera-calibration \
+    ros-${ROS_DISTRO}-usb-cam gdb doxygen && \
+if [[ $(uname -m) == "aarch64" ]] ; then \
+    sudo apt install -y nvidia-cuda-dev; \
+fi
+
+RUN python3 -m pip install git+https://github.com/ultralytics/ultralytics.git@main nets onnxslim onnxruntime-gpu \
+tensorrt==10.3.0
+
+WORKDIR ${HOME}/ros_ws
+
+#Install prerequisites using rosdep
+RUN pip3 install -U transforms3d && sudo apt update && rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y && \
+    rosdep update && rosdep install isaac_ros_nvblox
+
+#Build ROS2 drivers
+RUN source /opt/ros/${ROS_DISTRO}/setup.bash && colcon build --parallel-workers $(nproc) \
+    --symlink-install --event-handlers console_direct+ --base-paths src --cmake-args \
+    ' -DCMAKE_BUILD_TYPE=Release' ' -DCMAKE_LIBRARY_PATH=/usr/local/cuda/lib64/stubs' \
+    ' -DCMAKE_CXX_FLAGS="-Wl,--allow-shlib-undefined"' ' --no-warn-unused-cli'
+
+ENTRYPOINT [ "/entrypoint.sh" ]

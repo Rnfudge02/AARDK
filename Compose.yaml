@@ -1,0 +1,110 @@
+#Copyright [2024] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2024 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#TODO: Update
+
+#Compose support is in beta
+services:
+  asv-analysis:
+    privileged: true
+    image: asv-analysis:${ARCH}
+    build: ./CC.sh -b asv-analysis
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - asv-analysis-src-vol:/home/asv-analysis-user/ros_ws/src/share:rw
+      - asv-data-vol:/home/asv-analysis-user/ros_ws/data:rw
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+    - asv
+
+  asv-deployment:
+    privileged: true
+    image: asv-deployment:${ARCH}
+    build: 
+      context: ./Build/
+      additional_contexts: ./Build/Dependencies/isaac_ros_common/docker/
+    ports:
+      - 8705:8705
+    network_mode: host
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+    - asv
+
+  auv-deployment:
+    privileged: true
+    image: auv-deployment:${ARCH}
+    build: 
+      context: ./Build/Dependencies/isaac_ros_common/docker/
+      dockerfile: Dockerfile.base.ros2_humble.auv_deployment
+      additional_contexts:
+        build_dir: ./Build
+    ports:
+      - 8705:8705
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /usr/local/zed/settings:/usr/local/zed/settings:rw
+      - /usr/local/zed/resources:/usr/local/zed/resources:rw
+      - auv-deployment-src-vol:/home/auv-deployment/ros_ws/src/auv_deployment_tools_ros2:rw
+      - auv-data-vol:/home/auv-deployment/ros_ws/data:rw
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+    - auv
+
+  auv-analysis:
+    privileged: true
+    image: auv-analysis:${ARCH}
+    build: ./CC.sh -b auv-analysis
+    network_mode: host
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - auv-analysis-src-vol:/home/auv-analysis-user/ros_ws/src/share:rw
+      - auv-data-vol:/home/auv-analysis-user/ros_ws/data:rw
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles:
+    - auv
+
+volumes:
+  asv-data-vol:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./Data/ASV
+      o: bind
+  auv-data-vol:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./Data/AUV
+      o: bind
+

@@ -1,0 +1,42 @@
+#Copyright [2024] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2024 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#Build Issac ROS Image
+#https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
+ARG BASE_IMAGE=ubuntu:22.04
+FROM ${BASE_IMAGE}
+
+#Maintainer label
+LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
+LABEL version="3.0.0"
+
+ARG USERNAME=container-user
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG PLATFORM=amd64
+
+#Set user and home environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=${USERNAME}
+ENV HOME=/home/${USER}
+
+#Create directories, upgrade pip, and add appropriate lines to .bashrc
+RUN mkdir -p ${HOME}/ros_ws/src ${HOME}/ros_ws/data \
+    ${HOME}/ros_ws/build ${HOME}/ros_ws/install && \
+    python3 -m pip install --upgrade pip && python3 -m pip uninstall opencv-python && \
+    echo "export PATH=~/.local/bin:$PATH" >> ${HOME}/.bashrc && \
+    echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ${HOME}/.bashrc
+    #echo "source ${HOME}/ros_ws/install/setup.bash" >> ${HOME}/.bashrc
+
+#Install packages to accelerate inference via NVIDA Isaac ROS libraries
+#NITROS - Greatly accelerates communication between compatible nodes
+#Visual SLAM - 
+#Isaac Object Detection -
+#NVBlox Scene Reconstruction
+RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y ros-${ROS_DISTRO}-isaac-ros-nitros-bridge-ros2 \
+    ros-${ROS_DISTRO}-isaac-ros-visual-slam ros-${ROS_DISTRO}-isaac-ros-examples ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc \
+    ros-${ROS_DISTRO}-isaac-ros-zed ros-${ROS_DISTRO}-isaac-ros-yolov8 ros-${ROS_DISTRO}-isaac-ros-dnn-image-encoder \
+    ros-${ROS_DISTRO}-isaac-ros-tensor-rt ros-${ROS_DISTRO}-isaac-ros-nvblox ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc
+
+ENTRYPOINT [ "/entrypoint.sh" ]

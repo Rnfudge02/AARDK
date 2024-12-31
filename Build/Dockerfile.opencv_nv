@@ -1,0 +1,54 @@
+#Copyright [2024] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2024 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#Build Issac ROS Image
+#https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+#Maintainer label
+LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
+LABEL version="3.0.0"
+
+#Build OpenCV from source for nvidia acceleration
+RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y \
+    cmake libjpeg-dev libjpeg8-dev libjpeg-turbo8-dev libpng-dev libtiff-dev \
+    libglew-dev libavcodec-dev libavformat-dev libswscale-dev libgtk2.0-dev \
+    libgtk-3-dev libcanberra-gtk* python3-pip libxvidcore-dev libx264-dev \
+    libtbb-dev libdc1394-dev libxine2-dev libv4l-dev v4l-utils qv4l2 libtesseract-dev libpostproc-dev \
+    libswresample-dev libvorbis-dev libfaac-dev libmp3lame-dev libtheora-dev libopencore-amrnb-dev \
+    libopencore-amrwb-dev libopenblas-dev libatlas-base-dev libblas-dev liblapack-dev liblapacke-dev \
+    libeigen3-dev gfortran libhdf5-dev libprotobuf-dev protobuf-compiler libgoogle-glog-dev libgflags-dev \
+    libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 \
+    gstreamer1.0-qt5 gstreamer1.0-pulseaudio libmetis-dev
+
+WORKDIR /
+
+#Implement version control later
+RUN git clone -b 4.x --depth=1 https://github.com/opencv/opencv.git && \
+    git clone -b 4.x --depth=1 https://github.com/opencv/opencv_contrib.git
+
+#Cross platform OpenCV build
+#Caveats - To get max performance on Jetson, code generated on Jetson will not work with x86_64 (Anything not supporting compute capability sm_87)
+RUN if [[ "${PLATFORM}" == "aarch64" ]] ; then \
+    cd opencv && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr \
+    -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules -D EIGEN_INCLUDE_PATH=/usr/include/eigen3 \
+    -D WITH_OPENCL=OFF -D CUDA_ARCH_BIN=8.7 -D CUDA_ARCH_PTX="sm_87" -D WITH_CUDA=ON \
+    -D WITH_CUDNN=ON -D WITH_CUBLAS=ON -D ENABLE_FAST_MATH=ON -D CUDA_FAST_MATH=ON -D OPENCV_DNN_CUDA=ON -D ENABLE_NEON=ON \
+    -D WITH_QT=ON -D WITH_OPENMP=ON -D BUILD_TIFF=ON -D WITH_FFMPEG=ON -D WITH_GSTREAMER=ON -D WITH_TBB=ON -D BUILD_TBB=ON \
+    -D BUILD_TESTS=OFF -D WITH_EIGEN=ON -D WITH_V4L=ON -D WITH_LIBV4L=ON -D WITH_PROTOBUF=ON -D OPENCV_ENABLE_NONFREE=ON \
+    -D INSTALL_C_EXAMPLES=OFF -D INSTALL_PYTHON_EXAMPLES=OFF -D PYTHON3_PACKAGES_PATH=/usr/lib/python3/dist-packages \
+    -D OPENCV_GENERATE_PKGCONFIG=ON -D BUILD_EXAMPLES=OFF .. && make -j6; \
+else \
+    cd opencv && mkdir build && cd build && cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr \
+    -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib/modules -D EIGEN_INCLUDE_PATH=/usr/include/eigen3 \
+    -D WITH_OPENCL=OFF -D CUDA_ARCH_BIN=8.6 -D CUDA_ARCH_PTX="" -D WITH_CUDA=ON \
+    -D WITH_CUDNN=ON -D WITH_CUBLAS=ON -D ENABLE_FAST_MATH=ON -D CUDA_FAST_MATH=ON -D OPENCV_DNN_CUDA=ON \
+    -D WITH_QT=ON -D WITH_OPENMP=ON -D BUILD_TIFF=ON -D WITH_FFMPEG=ON -D WITH_GSTREAMER=ON -D WITH_TBB=ON BUILD_TBB=ON\
+    -D BUILD_TESTS=OFF -D WITH_EIGEN=ON -D WITH_V4L=ON -D WITH_LIBV4L=ON -D WITH_PROTOBUF=ON -D OPENCV_ENABLE_NONFREE=ON \
+    -D INSTALL_C_EXAMPLES=OFF -D INSTALL_PYTHON_EXAMPLES=OFF -D PYTHON3_PACKAGES_PATH=/usr/lib/python3/dist-packages \
+    -D OPENCV_GENERATE_PKGCONFIG=ON -D BUILD_EXAMPLES=OFF -D BUILD_opencv_sfm=OFF .. && make -j16; \
+fi && make install && ldconfig

@@ -1,0 +1,109 @@
+# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+#
+# NVIDIA CORPORATION and its licensors retain all intellectual property
+# and proprietary rights in and to this software, related documentation
+# and any modifications thereto.  Any use, reproduction, disclosure or
+# distribution of this software and related documentation without an express
+# license agreement from NVIDIA CORPORATION is strictly prohibited.
+
+#Custom fork of the user dockerfile from previous isaac ros version, developed by Robert Fudge, 2025
+
+#Inherit from previous build stage
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+#Maintainer label
+LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
+LABEL version="3.0.0"
+
+ARG USERNAME=container-user
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG PLATFORM=amd64
+ARG ENTER=auv-deployment-entrypoint
+ARG CONTROLLER=DC-auv
+
+#Set user and home environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=${USERNAME}
+ENV HOME=/home/${USER}
+
+#Install sudo and udev
+RUN --mount=type=cache,target=/var/cache/apt \
+    apt-get update && apt-get install -y \
+    sudo udev
+
+#Reuse triton-server user as 'admin' user if exists
+RUN if [ $(getent group triton-server) ]; then \
+        groupmod -o --gid ${USER_GID} -n ${USERNAME} triton-server ; \
+        usermod -l ${USERNAME} -u ${USER_UID} -m -d /home/${USERNAME} triton-server ; \
+        mkdir -p /home/${USERNAME} ; \
+        sudo chown ${USERNAME}:${USERNAME} /home/${USERNAME} ; \
+        #Wipe files that may create issues for users with large uid numbers.
+        rm -f /var/log/lastlog /var/log/faillog ; \
+    fi
+
+#Create the user profile if it doesn't exist
+RUN if [ ! $(getent passwd ${USERNAME}) ]; then \
+    groupadd --gid ${USER_GID} ${USERNAME} ; \
+    useradd --no-log-init --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} ; \
+fi
+
+#Update user permissions
+RUN echo ${USERNAME} ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/${USERNAME} \
+    && chmod 0440 /etc/sudoers.d/${USERNAME} && adduser ${USERNAME} video && \
+    adduser ${USERNAME} plugdev && adduser ${USERNAME} sudo && adduser ${USERNAME} dialout
+
+ENV USERNAME=${USERNAME}
+ENV USER_GID=${USER_GID}
+ENV USER_UID=${USER_UID}
+
+# Switch to non-root user and return to root
+USER ${USERNAME}
+
+#Change default middleware to CycloneDDS
+RUN --mount=type=cache,target=/var/cache/apt sudo apt install ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
+
+#Create directories, upgrade pip, and add appropriate lines to .bashrc
+#Add to PATH
+#Source ROS Setup
+#Making CycloneDDS Default
+
+#Clear unfinished messages after 5s from 30s
+#Increase memory available for IP fragment assembly from 4MB to 128MiB
+#Increase Kernel Buffer Receive Size to 2GiB
+RUN mkdir -p ${HOME}/ros_ws/src ${HOME}/ros_ws/data \
+    ${HOME}/ros_ws/build ${HOME}/ros_ws/install && \
+    python3 -m pip install --upgrade pip && \
+    echo "export PATH=~/.local/bin:$PATH" >> ${HOME}/.bashrc && \
+    echo "export ISAAC_ROS_WS=${HOME}/ros_ws" && \
+    echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ${HOME}/.bashrc && \
+    echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ${HOME}/.bashrc && \
+    echo "export CYCLONEDDS_URI=file:///cycloneDDS_settings.xml" >> ${HOME}/.bashrc && \
+    echo "net.ipv4.ipfrag_time=5" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
+    echo "net.ipv4.ipfrag_high_thresh=134217728" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
+    echo "net.core.rmem_max=2147483647" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf
+
+#Copy entrypoint and config
+COPY Scripts/${ENTER}.sh /entrypoint.sh
+COPY .dev-settings/cycloneDDS_settings.xml /cycloneDDS_settings.xml
+COPY .dev-settings/c_cpp_properties_aarch64.json ../.vscode/c_cpp_properties_aarch64.json
+COPY .dev-settings/c_cpp_properties_x86_64.json ../.vscode/c_cpp_properties_x86_64.json
+COPY .dev-settings/settings.json ../.vscode/settings.json
+COPY Scripts/${CONTROLLER}.sh ${HOME}/ros_ws/DC.sh
+
+#Choose which c_cpp_properties.json should be used
+RUN if [[ "${PLATFORM}" == "aarch64" ]] ; then \
+    sudo chown ${USER} ../.vscode/c_cpp_properties_aarch64.json && \
+    chmod -R 777 ../.vscode/c_cpp_properties_aarch64.json && \
+    sudo mv ../.vscode/c_cpp_properties_aarch64.json ../.vscode/c_cpp_properties.json; \
+else \
+    sudo chown ${USER} ../.vscode/c_cpp_properties_x86_64.json && \
+    chmod -R 777 ../.vscode/c_cpp_properties_x86_64.json && \
+    sudo mv ../.vscode/c_cpp_properties_x86_64.json ../.vscode/c_cpp_properties.json; \
+fi && sudo rm -f ../.vscode/c_cpp_properties_x86_64.json ../.vscode/c_cpp_properties_aarch64.json && \
+    sudo chmod +x /entrypoint.sh && sudo chmod +x ${HOME}/ros_ws/DC.sh && sudo chmod +x /entrypoint.sh
+    
+RUN --mount=type=cache,target=/var/cache/apt \
+    rosdep update
+USER root

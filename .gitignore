@@ -1,0 +1,5 @@
+./Build/Dependencies/**
+./Data/ASV/**
+./Data/AUV/**
+./Projects/Analysis/**
+./Projects/Deployment/**
