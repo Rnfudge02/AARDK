@@ -93,7 +93,7 @@ COPY .dev-settings/settings.json ../.vscode/settings.json
 COPY Scripts/${CONTROLLER}.sh ${HOME}/ros_ws/DC.sh
 
 #Choose which c_cpp_properties.json should be used
-RUN if [[ "${PLATFORM}" == "aarch64" ]] ; then \
+RUN if [[ "${PLATFORM}" == "arm64" ]] ; then \
     sudo chown ${USER} ../.vscode/c_cpp_properties_aarch64.json && \
     chmod -R 777 ../.vscode/c_cpp_properties_aarch64.json && \
     sudo mv ../.vscode/c_cpp_properties_aarch64.json ../.vscode/c_cpp_properties.json; \

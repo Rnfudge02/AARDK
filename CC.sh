@@ -155,7 +155,7 @@ while getopts "b:c:de:ghin:s:" options; do
                 PLAT="amd64"
 
             elif [ "${ARCH}" == "aarch64" ]; then
-                PLAT="aarch64"
+                PLAT="arm64"
 
             else
                 echo -e "${FG_CYAN}[Container Controller]${FG_RED} Error: inavlid architecture.${RESET}"
@@ -168,7 +168,7 @@ while getopts "b:c:de:ghin:s:" options; do
         #Cross-compile - build for opposite architecture as target
         c)
             if [ "${ARCH}" == "x86_64" ]; then
-                PLAT="aarch64"
+                PLAT="arm64"
 
             elif [ "${ARCH}" == "aarch64" ]; then
                 PLAT="amd64"
@@ -223,7 +223,7 @@ while getopts "b:c:de:ghin:s:" options; do
             mkdir -p ./Build/Dependencies
             cd ./Build/Dependencies
             git clone https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git && \
-            cd isaac_ros_common && git checkout -b local_branch 80f28e0
+            cd isaac_ros_common && git checkout -b local_branch daff86f
 
             echo -e "${FG_CYAN}[Container Controller]${FG_GREEN} Done${RESET}"
         ;;

@@ -64,11 +64,11 @@ opencv_nv &rarr; Contains platform-specific instructions for buildingh and insta
 
 user &rarr; Contains instructions for setting up the user in the container, and granting them the approrpiate permissions to access the hardware. This is a maintained version of a previous NVIDIA CORPORATION Dockerfile that is no longer supported, but essential for the project. Project specific changes have been implemented.
 
-asv_analysis &rarr; 
+asv_analysis &rarr; WIP
 
-asv_deployment &rarr;
+asv_deployment &rarr; Contains instructions for building Iceberg ASV's project stack.
 
-auv_analysis &rarr;
+auv_analysis &rarr; WIP
 
 auv_deployment &rarr; Contains instructions for setting up the deployment environment for the AUV.
 
