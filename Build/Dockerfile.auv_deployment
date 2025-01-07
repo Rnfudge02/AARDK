@@ -7,6 +7,8 @@
 #CUDA Toolktit V12.6
 #Pytorch for CUDA V2.5.0
 
+#Torchvision and TorchAudio are not installed on the arm64 base image
+
 #They also removed the user initialization process, which means each container will be responsible for it's own
 
 #Build Issac ROS Image
@@ -39,6 +41,21 @@ RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y ros-${
     ros-${ROS_DISTRO}-isaac-ros-zed ros-${ROS_DISTRO}-isaac-ros-yolov8 ros-${ROS_DISTRO}-isaac-ros-dnn-image-encoder \
     ros-${ROS_DISTRO}-isaac-ros-tensor-rt ros-${ROS_DISTRO}-isaac-ros-nvblox ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc
 
+    #Downgrade to Pytorch 2.3.0 - Installing as system packages
+RUN if [[ ${PLATFORM} == "arm64" ]] ; then \
+    pip3 uninstall -y torch && \
+    wget https://nvidia.box.com/shared/static/zvultzsmd4iuheykxy17s4l2n91ylpl8.whl && \
+    wget https://nvidia.box.com/shared/static/9si945yrzesspmg9up4ys380lqxjylc3.whl && \
+    wget https://nvidia.box.com/shared/static/u0ziu01c0kyji4zz3gxam79181nebylf.whl && \
+    mv ./zvultzsmd4iuheykxy17s4l2n91ylpl8.whl /torch-2.3.0-cp310-cp310-linux_aarch64.whl && \
+    mv ./9si945yrzesspmg9up4ys380lqxjylc3.whl /torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl && \
+    mv ./u0ziu01c0kyji4zz3gxam79181nebylf.whl /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torch-2.3.0-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl \
+    && rm -rf /torch-2.3.0-cp310-cp310-linux_aarch64.whl /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl; \
+fi
+
 USER ${USER}
 WORKDIR ${HOME}/ros_ws/src
 
@@ -69,17 +86,27 @@ RUN --mount=type=cache,target=/var/cache/apt sudo apt update && sudo apt install
     ros-${ROS_DISTRO}-foxglove-bridge python3-sphinx ros-${ROS_DISTRO}-mavros \
     ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-camera-calibration \
     ros-${ROS_DISTRO}-usb-cam gdb doxygen && \
-if [[ $(uname -m) == "arm64" ]] ; then \
+if [[ ${PLATFORM} == "arm64" ]] ; then \
     sudo apt install -y nvidia-cuda-dev; \
 fi
 
-RUN python3 -m pip install git+https://github.com/ultralytics/ultralytics.git@main nets onnxslim onnxruntime-gpu \
-tensorrt==10.3.0
+
+RUN pip3 install --no-cache-dir --no-dependencies git+https://github.com/ultralytics/ultralytics.git@main \
+    py_cpuinfo nets onnxslim seaborn && \
+if [[ ${PLATFORM} == "amd64" ]]; then \
+    python3 -m pip install onnxruntime-gpu tensorrt==10.3.0; \
+else \
+    mkdir -p ${HOME}/opt && \
+    wget https://nvidia.box.com/shared/static/6l0u97rj80ifwkk8rqbzj1try89fk26z.whl && \
+    mv ./6l0u97rj80ifwkk8rqbzj1try89fk26z.whl ${HOME}/opt/onnxruntime_gpu-1.19.0-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir ${HOME}/opt/onnxruntime_gpu-1.19.0-cp310-cp310-linux_aarch64.whl && \
+    rm -rf ${HOME}/opt/onnxruntime_gpu-1.19.0-cp310-cp310-linux_aarch64.whl; \
+fi
 
 WORKDIR ${HOME}/ros_ws
 
 #Install prerequisites using rosdep
-RUN pip3 install -U transforms3d && sudo apt update && rosdep update && \
+RUN pip3 install -U --no-cache-dir transforms3d && sudo apt update && rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y && \
     rosdep update && rosdep install isaac_ros_nvblox
 

@@ -299,7 +299,7 @@ while getopts "b:c:de:ghin:s:" options; do
                 PLAT="amd64"
 
             elif [ "${ARCH}" == "aarch64" ]; then
-                PLAT="aarch64"
+                PLAT="arm64"
 
             else
                 echo -e "${FG_CYAN}[Container Controller]${FG_RED} Error: inavlid architecture.${RESET}"

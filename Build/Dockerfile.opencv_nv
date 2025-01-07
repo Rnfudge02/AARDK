@@ -12,7 +12,7 @@ LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
 LABEL version="3.0.0"
 
 #Build OpenCV from source for nvidia acceleration
-RUN --mount=type=cache,target=/var/cache/apt apt update && apt dist-upgrade -y && apt install -y \
+RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y \
     cmake libjpeg-dev libjpeg8-dev libjpeg-turbo8-dev libpng-dev libtiff-dev \
     libglew-dev libavcodec-dev libavformat-dev libswscale-dev libgtk2.0-dev \
     libgtk-3-dev libcanberra-gtk* python3-pip libxvidcore-dev libx264-dev \
