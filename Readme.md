@@ -1,7 +1,6 @@
 # AARDK (Automata Accelerated Robotics Development Kit)
 
-AARDK is a project aimed at easing the development of cross-platform robotics solutions
-for various environments. The following Subprojects are being implemented currently.
+AARDK is a project aimed at easing the development of cross-platform robotics solutions for various environments. The following Subprojects are being implemented currently.
 
 1. Autonomous Underwater Vehicle
 2. Autonomous Surface Vehicle
@@ -73,12 +72,12 @@ auv_analysis &rarr; WIP
 auv_deployment &rarr; Contains instructions for setting up the deployment environment for the AUV.
 
 ## Issues
-- Docker compose compatibility is still a work-in-progress, not sure entriely possible?
+- Docker compose compatibility is still a work-in-progress, not sure if it's entriely possible, perhaps with buildx plugin?
 
-- [opencv_nv]() SFM is currently disabled on x86_64 
+- [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64 
 
 ## Contributing
-This is currently a closed-source project maintained by Robert Fudge, 2024 -
+This is currently an open-source project maintained by Robert Fudge, 2024 -
 
 To create a new project, there are seven components needed. It is recommended to follow development in this order to allow for a natural progression and to facilitate testing of the current step with the completed components of the previous stage.
 1. Deployment Dockerfile
@@ -94,7 +93,7 @@ To create a new project, there are seven components needed. It is recommended to
 6. AC.sh (Analysis Controller)
 
 ## Credit
-Please see the associated [References.bib](#References.bib) file for academic references to technologies used in this project. This is currently a work-in-progress, and you see that a project used here isn't referenced properly, please reach out to [rnfudge@mun.ca] and corrections will be made.
+Please see the associated [References.bib](./References.bib) file for academic references to technologies used in this project. This is currently a work-in-progress, and if you notice that a project used here isn't referenced properly, please reach out to [rnfudge@mun.ca](mailto:rnfudge@mun.ca) and corrections will be made.
 
 ## License
 This project is currently licensed under the Apache 2.0 license.
