@@ -104,6 +104,6 @@ else \
 fi && sudo rm -f ../.vscode/c_cpp_properties_x86_64.json ../.vscode/c_cpp_properties_aarch64.json && \
     sudo chmod +x /entrypoint.sh && sudo chmod +x ${HOME}/ros_ws/DC.sh && sudo chmod +x /entrypoint.sh
     
-RUN --mount=type=cache,target=/var/cache/apt \
-    rosdep update
+RUN --mount=type=cache,target=/var/cache/apt rosdep update
+
 USER root

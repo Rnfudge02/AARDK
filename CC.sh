@@ -38,7 +38,7 @@ BG_CYAN="\033[46m"
 BG_WHITE="\033[47m"
 
 #Package where config files are stored
-ADTR2_CONFIG=${PWD}/Projects/Deployment/adtr2/automata_deployment_toolkit_ros2/config
+ADTR2_CONFIG=${PWD}/Projects/Deployment/ADTR2/automata_deployment_toolkit_ros2/config
 
 #Function to get device id
 getdevice() {
