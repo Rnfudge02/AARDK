@@ -310,8 +310,8 @@ while getopts "b:c:de:ghin:s:" options; do
             #Create data volumes
             docker volume create --driver local --opt type="none" --opt device="${PWD}/Data/AUV" --opt o="bind" "auv-data-vol" > /dev/null
             docker volume create --driver local --opt type="none" --opt device="${PWD}/Data/ASV" --opt o="bind" "asv-data-vol" > /dev/null
-            docker volume create --driver local --opt type="none" --opt device="${PWD}/ADTR2" --opt o="bind" "deployment-vol" > /dev/null
-            docker volume create --driver local --opt type="none" --opt device="${PWD}/AATR2" --opt o="bind" "analysis-vol" > /dev/null
+            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/ADTR2" --opt o="bind" "deployment-vol" > /dev/null
+            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/AATR2" --opt o="bind" "analysis-vol" > /dev/null
 
             #Declare docker args variable (stringArray needed for docker buildx build command)
             declare -a DOCKER_ARGS=()
