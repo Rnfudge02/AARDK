@@ -1,0 +1,9 @@
+[submodule "Projects/ADTR2"]
+	path = Projects/ADTR2
+	url = https://github.com/Rnfudge02/ADTR2.git
+[submodule "Projects/AATR2"]
+	path = Projects/AATR2
+	url = https://github.com/Rnfudge02/AATR2.git
+[submodule "Build/Dependencies/isaac_ros_common"]
+	path = Build/Dependencies/isaac_ros_common
+	url = https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git
