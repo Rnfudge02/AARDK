@@ -4,7 +4,7 @@
 
 #TODO: Update
 
-#Compose support is in beta
+#Compose support is in beta (not working)
 services:
   asv-analysis:
     privileged: true

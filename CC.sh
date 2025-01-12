@@ -119,19 +119,19 @@ auv_check() {
             echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} Warning: GNSS reciever not detected${RESET}"
         fi
 
-        #OHY camera check
+        #QHY camera check
         if lsusb | grep -q "QHYCCD \Titan224U" ; then
-            echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} OHY5III224 detected by host system${RESET}"
+            echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} QHY5III224 detected by host system${RESET}"
             GREP_LINE=$(lsusb | grep "QHYCCD \Titan224U")
-            IFS=', ' read -r -a ohy_array <<< "${GREP_LINE}"
-            bus_id=${ohy_array[1]}
-            dev_id=${ohy_array[3]}
+            IFS=', ' read -r -a qhy_array <<< "${GREP_LINE}"
+            bus_id=${qhy_array[1]}
+            dev_id=${qhy_array[3]}
 
-            OHY_DIR=/dev/bus/usb/${bus_id}/${dev_id}
-            sed -i "3 c\video_device: \"${OHY_DIR}\"" ${ADTR2_CONFIG}/ohy_params.yaml
+            QHY_DIR=/dev/bus/usb/${bus_id}/${dev_id}
+            sed -i "3 c\      video_device: \"${QHY_DIR}\"" ${ADTR2_CONFIG}/qhy_params.yaml
 
         else
-            echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} Warning: OHY5III224 reciever not detected${RESET}"
+            echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} Warning: QHY5III224 image sensor not detected${RESET}"
             echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} ensure proper drivers are installed on host system${RESET}"
         fi
 
@@ -144,6 +144,18 @@ auv_check() {
         fi
 
         #Pixhawk Check
+        if lsusb | grep -q "3D Robotics PX4 FMU v2.x"; then
+            echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} PX4 FCU detected by host system${RESET}"
+            GREP_LINE=$(lsusb | grep "3D Robotics PX4 FMU v2.x")
+            IFS=', ' read -r -a pix_array <<< "${GREP_LINE}"
+            bus_id=${pix_array[1]}
+            dev_id=${pix_array[3]}
+
+            PIX_DIR=/dev/bus/usb/${bus_id}/${dev_id}
+            sed -i "55 c\    dev_path: \"${PIX_DIR}\"" ${ADTR2_CONFIG}/settings.yaml
+        else
+            echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} Warning: PX4 FCU not detected${RESET}"
+        fi
 }
 
 #Parse command line arguments
@@ -165,7 +177,7 @@ while getopts "b:c:de:ghin:s:" options; do
             build ${OPTARG} ${PLAT}
         ;;
 
-        #Cross-compile - build for opposite architecture as target
+        #Cross-compile - build for opposite architecture as target - NOT WORKING, issue with transferring build stages
         c)
             if [ "${ARCH}" == "x86_64" ]; then
                 PLAT="arm64"
@@ -192,7 +204,6 @@ while getopts "b:c:de:ghin:s:" options; do
             if [[ "${CONTAINER}" != "" ]]; then
                 docker stop $(docker ps -a -q)
                 docker rm $(docker ps -a -q)
-
             fi
 
             #Remove volumes
@@ -274,11 +285,22 @@ while getopts "b:c:de:ghin:s:" options; do
 
         #New Instance - 
         n)
+            if [ "${ARCH}" == "x86_64" ]; then
+                PLAT="amd64"
+
+            elif [ "${ARCH}" == "aarch64" ]; then
+                PLAT="arm64"
+
+            else
+                echo -e "${FG_CYAN}[Container Controller]${FG_RED} Error: inavlid architecture.${RESET}"
+                exit 1
+            fi
+
             #Determine if any containers are running
-            CONTAINER_LINE=$(docker container ls -la | grep -E "(^| )${OPTARG}:${ARCH}( |$)")
+            CONTAINER_LINE=$(docker container ls -la | grep -E "(^| )${OPTARG}:${PLAT}( |$)")
             CONT_ARR=""
             IFS=', ' read -r -a CONT_ARR <<< "${CONTAINER_LINE}"
-            
+
             if [[ "${CONTAINER_LINE}" != "" ]]; then
                 echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Starting new terminal instance for ${OPTARG}${RESET}"
                 
@@ -354,7 +376,7 @@ while getopts "b:c:de:ghin:s:" options; do
                 echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: auv-analysis${RESET}"
 
                 docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
-                --volume=analysis-vol:/home/auv-analysis-user/ros_ws/src/adtr2:rw \
+                --volume=analysis-vol:/home/auv-analysis-user/ros_ws/src/aatr2:rw \
                 --volume=auv-data-vol:/home/auv-analysis-user/ros_ws/data:rw \
                 --volume=/etc/localtime:/etc/localtime:ro \
                 ${DOCKER_ARGS[@]} auv-analysis:${PLAT}
@@ -368,7 +390,7 @@ while getopts "b:c:de:ghin:s:" options; do
                 docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
                 --volume=/usr/local/zed/settings:/usr/local/zed/settings:rw \
                 --volume=/usr/local/zed/resources:/usr/local/zed/resources:rw \
-                --volume=deployment-vol:/home/auv-deployment/ros_ws/src/auv_deployment_tools_ros2:rw \
+                --volume=deployment-vol:/home/auv-deployment/ros_ws/src/adtr2:rw \
                 --volume=auv-data-vol:/home/auv-deployment/ros_ws/data:rw \
                 --volume=/etc/localtime:/etc/localtime:ro \
                 ${DOCKER_ARGS[@]} auv-deployment:${PLAT}

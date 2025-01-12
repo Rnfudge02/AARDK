@@ -6,4 +6,4 @@
 	url = https://github.com/Rnfudge02/AATR2.git
 [submodule "Build/Dependencies/isaac_ros_common"]
 	path = Build/Dependencies/isaac_ros_common
-	url = https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git
+	url = https://github.com/Rnfudge02/isaac_ros_common.git

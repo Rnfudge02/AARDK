@@ -13,7 +13,7 @@
 
 #Build Issac ROS Image
 #https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 #Maintainer label

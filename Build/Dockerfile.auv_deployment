@@ -13,7 +13,7 @@
 
 #Build Issac ROS Image
 #https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
-ARG BASE_IMAGE=ubuntu:22.04
+ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
 #Maintainer label
@@ -29,6 +29,7 @@ ARG PLATFORM=amd64
 ENV DEBIAN_FRONTEND=noninteractive
 ENV USER=${USERNAME}
 ENV HOME=/home/${USER}
+ENV ROS_WS=${HOME}/ros_ws
 
 #Install all isaac ros packages used
 RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y ros-${ROS_DISTRO}-isaac-ros-gxf \
@@ -41,7 +42,7 @@ RUN --mount=type=cache,target=/var/cache/apt apt update && apt install -y ros-${
     ros-${ROS_DISTRO}-isaac-ros-zed ros-${ROS_DISTRO}-isaac-ros-yolov8 ros-${ROS_DISTRO}-isaac-ros-dnn-image-encoder \
     ros-${ROS_DISTRO}-isaac-ros-tensor-rt ros-${ROS_DISTRO}-isaac-ros-nvblox ros-${ROS_DISTRO}-isaac-ros-stereo-image-proc
 
-    #Downgrade to Pytorch 2.3.0 - Installing as system packages
+#Downgrade to Pytorch 2.3.0 - Installing as system packages
 RUN if [[ ${PLATFORM} == "arm64" ]] ; then \
     pip3 uninstall -y torch && \
     wget https://nvidia.box.com/shared/static/zvultzsmd4iuheykxy17s4l2n91ylpl8.whl && \
@@ -94,7 +95,7 @@ fi
 RUN pip3 install --no-cache-dir --no-dependencies git+https://github.com/ultralytics/ultralytics.git@main \
     py_cpuinfo nets onnxslim seaborn && \
 if [[ ${PLATFORM} == "amd64" ]]; then \
-    python3 -m pip install onnxruntime-gpu tensorrt==10.3.0; \
+    python3 -m pip install onnxruntime onnxruntime-gpu; \
 else \
     mkdir -p ${HOME}/opt && \
     wget https://nvidia.box.com/shared/static/6l0u97rj80ifwkk8rqbzj1try89fk26z.whl && \
