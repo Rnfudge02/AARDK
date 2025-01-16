@@ -21,6 +21,37 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV USER=${USERNAME}
 ENV HOME=/home/${USER}
 
+#Downgrade to Pytorch 2.3.0 - Installing as system packages
+RUN if [[ ${PLATFORM} == "arm64" ]] ; then \
+    pip3 uninstall -y torch && \
+    wget https://nvidia.box.com/shared/static/zvultzsmd4iuheykxy17s4l2n91ylpl8.whl && \
+    wget https://nvidia.box.com/shared/static/9si945yrzesspmg9up4ys380lqxjylc3.whl && \
+    wget https://nvidia.box.com/shared/static/u0ziu01c0kyji4zz3gxam79181nebylf.whl && \
+    mv ./zvultzsmd4iuheykxy17s4l2n91ylpl8.whl /torch-2.3.0-cp310-cp310-linux_aarch64.whl && \
+    mv ./9si945yrzesspmg9up4ys380lqxjylc3.whl /torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl && \
+    mv ./u0ziu01c0kyji4zz3gxam79181nebylf.whl /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torch-2.3.0-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torchaudio-2.3.0+952ea74-cp310-cp310-linux_aarch64.whl && \
+    pip3 install --no-cache-dir /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl \
+    && rm -rf /torch-2.3.0-cp310-cp310-linux_aarch64.whl /torchvision-0.18.0a0+6043bc2-cp310-cp310-linux_aarch64.whl; \
+fi
+
+#Ensure needed packages are installed
+RUN sudo apt update && sudo apt install -y python3-rosdep python3-rosinstall-generator python3-vcstool \
+    python3-rosinstall build-essential ros-${ROS_DISTRO}-foxglove-bridge python3-sphinx \
+    ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-camera-calibration \
+    ros-${ROS_DISTRO}-usb-cam && if [[ $(uname -m) == "aarch64" ]] ; then \
+    sudo apt install -y nvidia-cuda-dev; fi
+
+RUN git clone https://github.com/mgonzs13/yolov8_ros.git && \
+mv yolov8_ros src/yolov8_ros && pip3 install -r src/yolov8_ros/requirements.txt && \
+git clone https://github.com/IcebergASV/general.git && mv general src && \
+git clone https://github.com/IcebergASV/visualization.git && mv visualization src && \
+git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-master && \
+mv realsense-ros src/realsense-ros && \
+sudo apt update && pip3 install -U sphinx && rosdep update && rosdep install -i --from-path src --rosdistro ${ROS_DISTRO} --skip-keys=librealsense2 -y && \
+source /opt/ros/${ROS_DISTRO}/setup.bash && colcon build --symlink-install
+
 
 
 ENTRYPOINT [ "/entrypoint.sh" ]
