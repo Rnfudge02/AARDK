@@ -76,7 +76,7 @@ build() {
 
     elif [[ "$1" == "asv_deployment" || "$1" == "asv-deployment" ]]; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}asv-deployment.${RESET}"
-        ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.user.asv_deployment \
+        ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.realsense.user.asv_deployment \
         --build_arg USERNAME=asv-deployment --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} --build_arg PLATFORM=$2 \
         --build_arg PLATFORM=$2 --build_arg ENTER=asv-deployment-entrypoint --build_arg CONTROLLER=DC-asv \
         --docker_arg ${DOCKER_ARGS} --image_name asv-deployment:$2
