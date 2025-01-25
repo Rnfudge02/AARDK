@@ -17,15 +17,15 @@ iceberg_build() {
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-analysis.${RESET}"
         ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.user.iceberg_asv_analysis \
         --build_arg USERNAME=asv-analysis-user --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} \
-        --build_arg PLATFORM=$2 --build_arg ENTER=asv-analysis-entrypoint --build_arg CONTROLLER=iceberg-asv-AC \
-        --docker_arg ${DOCKER_ARGS} --image_name asv-analysis:$2
+        --build_arg PLATFORM=$2 --build_arg ENTER=iceberg-asv-analysis-entrypoint --build_arg CONTROLLER=iceberg-asv-AC \
+        --docker_arg ${DOCKER_ARGS} --image_name iceberg-asv-analysis:$2
 
     elif [[ "$1" == "iceberg_asv_deployment" || "$1" == "iceberg-asv-deployment" ]]; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-deployment.${RESET}"
         ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.realsense.user.iceberg_asv_deployment \
         --build_arg USERNAME=asv-deployment --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} --build_arg PLATFORM=$2 \
-        --build_arg PLATFORM=$2 --build_arg ENTER=asv-deployment-entrypoint --build_arg CONTROLLER=iceberg-asv-DC \
-        --docker_arg ${DOCKER_ARGS} --image_name asv-deployment:$2
+        --build_arg PLATFORM=$2 --build_arg ENTER=iceberg-asv-deployment-entrypoint --build_arg CONTROLLER=iceberg-asv-DC \
+        --docker_arg ${DOCKER_ARGS} --image_name iceberg-asv-deployment:$2
     fi
 
     iceberg_clean
