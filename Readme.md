@@ -88,7 +88,7 @@ base &rarr; ros2_humble &rarr; opencv_nv &rarr; user &rarr; auv_deployment
 - [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64 
 
 ## Contributing
-This is currently an open-source project maintained by Robert Fudge, 2024 -
+This is currently an open-source project maintained by Robert Fudge, 2025 -
 
 Pull requests are welcome.
 

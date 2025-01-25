@@ -1,5 +1,5 @@
-#Copyright [2024] [Robert Fudge]
-#SPDX-FileCopyrightText: © 2024 Robert Fudge <rnfudge@mun.ca>
+#Copyright [2025] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2025 Robert Fudge <rnfudge@mun.ca>
 #SPDX-License-Identifier: {Apache-2.0}
 
 #As of Isaac ROS 3.2, the following packages are configured in base for both architectures
@@ -75,7 +75,7 @@ else \
     sudo ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so; \
 fi && rm ZED_SDK_Linux.run && sudo rm -rf /usr/local/zed/resources/* && sudo rm -rf /var/lib/apt/lists/*
 
-#Clone open source drivers
+#Clone open source drivers - w/ version control
 RUN git clone --recursive https://github.com/stereolabs/zed-ros2-wrapper.git && \
     cd ./zed-ros2-wrapper && git checkout -b local_branch adaaed8 && cd .. && \
     git clone -b ros2 https://github.com/ros-drivers/nmea_navsat_driver.git && \
@@ -91,7 +91,7 @@ if [[ ${PLATFORM} == "arm64" ]] ; then \
     sudo apt install -y nvidia-cuda-dev; \
 fi
 
-
+#WIP use TensorRT and Ultralytics for image processing pipeline
 RUN pip3 install --no-cache-dir --no-dependencies git+https://github.com/ultralytics/ultralytics.git@main \
     py_cpuinfo nets onnxslim seaborn && \
 if [[ ${PLATFORM} == "amd64" ]]; then \

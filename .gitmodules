@@ -7,3 +7,6 @@
 [submodule "Build/Dependencies/isaac_ros_common"]
 	path = Build/Dependencies/isaac_ros_common
 	url = https://github.com/Rnfudge02/isaac_ros_common.git
+[submodule "Build/AARDK-Iceberg-plugin"]
+	path = Build/AARDK-Iceberg-plugin
+	url = https://github.com/Rnfudge02/AARDK-Iceberg-plugin.git
