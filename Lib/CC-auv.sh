@@ -1,6 +1,12 @@
+#Copyright [2025] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2025 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
 source ./Lib/CC-common.sh
 
+#Function to build the AUV
 auv_build() {
+    #Get user and group ID
     USER_ID=$(id -u ${USER})
     USER_GROUP_ID=$(id -g ${USER})
 
@@ -10,6 +16,7 @@ auv_build() {
     #Map host's display socket to docker
     DOCKER_ARGS+=("--no-cache-filter end")
 
+    #Build the appropriate AUV container
     if [[ "$1" == "auv_analysis" || "$1" == "auv-analysis" ]]; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}auv-analysis.${RESET}"
         ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.user.auv_analysis \
@@ -26,20 +33,21 @@ auv_build() {
     fi
 }
 
-#Function for checking AUV devices
+#Function for checking connected AUV devices
 auv_check() {
+    #Check each device individually
     __auv_gnss_check
     __auv_pixhawk_check
     __auv_zed2i_check
     __auv_qhy_check
 }
 
+#Function for starting specified AUV container
 auv_start() {
-    mkdir -p ./Data
-
     #Create data volumes
     docker volume create --driver local --opt type="none" --opt device="${PWD}/Data/AUV" --opt o="bind" "auv-data-vol" > /dev/null
 
+    #Start the appropriate AUV container
     if [[ "${OPTARG}" == "auv_analysis" || "${OPTARG}" == "auv-analysis" ]]; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: auv-analysis${RESET}"
 
@@ -54,7 +62,6 @@ auv_start() {
 
         auv_check
 
-        #Launch the container
         docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
         --volume=/usr/local/zed/settings:/usr/local/zed/settings:rw \
         --volume=/usr/local/zed/resources:/usr/local/zed/resources:rw \
@@ -65,13 +72,14 @@ auv_start() {
     fi
 }
 
+#Internal function for checking AUV GNSS
 __auv_gnss_check() {
     #GNSS reciever device check
     if lsusb | grep -q "U-Blox \AG \[u-blox 8]" ; then
         echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} GNSS reciever detected by host system${RESET}"
         GREP_LINE=$(lsusb | grep "U-Blox \AG \[u-blox 8]")
         IFS=', ' read -r -a gnss_array <<< "${GREP_LINE}"
-        dev_id=$(getdevice ${gnss_array[5]})
+        dev_id=$(get_dev_path ${gnss_array[5]})
 
         GNSS_DIR=/dev/${dev_id}
                     
@@ -82,16 +90,12 @@ __auv_gnss_check() {
     fi
 }
 
+#Internal function for checking high speed camera
 __auv_qhy_check() {
-    #QHY camera check
+    #
     if lsusb | grep -q "QHYCCD \Titan224U" ; then
         echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} QHY5III224 detected by host system${RESET}"
-        GREP_LINE=$(lsusb | grep "QHYCCD \Titan224U")
-        IFS=', ' read -r -a qhy_array <<< "${GREP_LINE}"
-        bus_id=${qhy_array[1]}
-        dev_id=${qhy_array[3]}
-
-        QHY_DIR=/dev/bus/usb/${bus_id}/${dev_id}
+        QHY_DIR=$(get_bus_path "QHYCCD \Titan224U")
         sed -i "3 c\      video_device: \"${QHY_DIR}\"" ${ADTR2_CONFIG}/qhy_params.yaml
 
     else
@@ -100,8 +104,9 @@ __auv_qhy_check() {
     fi
 }
 
+#Function for checking if the zed2i is connected to the AUV - Depth Perception Apparatus
 __auv_zed2i_check() {
-    #ZED2i device check
+    #Nothing needed to pass into container, just ensure its connected
     if lsusb | grep -q "STEREOLABS ZED 2i"; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} ZED2i detected by host system${RESET}"
 
@@ -110,19 +115,14 @@ __auv_zed2i_check() {
     fi
 }
 
+#Function for checking if the Pixhawk PX4 FMU is connected - Flight Controller
 __auv_pixhawk_check() {
-    #Pixhawk Check
     if lsusb | grep -q "3D Robotics PX4 FMU v2.x"; then
         echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} PX4 FCU detected by host system${RESET}"
-        GREP_LINE=$(lsusb | grep "3D Robotics PX4 FMU v2.x")
-        IFS=', ' read -r -a pix_array <<< "${GREP_LINE}"
-        bus_id=${pix_array[1]}
-        dev_id=${pix_array[3]}
+        PIX_DIR=$(get_bus_path "3D Robotics PX4 FMU v2.x")
 
-        PIX_DIR=/dev/bus/usb/${bus_id}/${dev_id}
         sed -i "55 c\    dev_path: \"${PIX_DIR}\"" ${ADTR2_CONFIG}/settings.yaml
     else
         echo -e "${FG_CYAN}[Container Controller]${FG_MAGENTA} Warning: PX4 FCU not detected${RESET}"
     fi
 }
-

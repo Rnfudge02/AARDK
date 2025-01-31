@@ -9,8 +9,6 @@
 
 #Torchvision and TorchAudio are not installed on the arm64 base image
 
-#They also removed the user initialization process, which means each container will be responsible for it's own
-
 #Build Issac ROS Image
 #https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
 ARG BASE_IMAGE

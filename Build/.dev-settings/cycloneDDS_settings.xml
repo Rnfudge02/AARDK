@@ -3,11 +3,16 @@
   <Domain Id="any">
     <General>
       <Interfaces>
-        <NetworkInterface autodetermine="true" priority="default" multicast="default" />
+        <NetworkInterface autodetermine="true" priority="default" multicast="enabled" />
       </Interfaces>
-      <AllowMulticast>default</AllowMulticast>
+      <AllowMulticast>enabled</AllowMulticast>
       <MaxMessageSize>65500B</MaxMessageSize>
     </General>
+    <Discovery>
+      <Multicast>enabled</Multicast>
+      <PeerPort>7400</PeerPort>
+      <AutoTermination>false</AutoTermination>
+    </Discovery>
     <Internal>
       <SocketReceiveBufferSize min="10MB"/>
       <Watermarks>

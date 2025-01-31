@@ -22,6 +22,7 @@ ARG USER_GID=1000
 ARG PLATFORM=amd64
 ARG ENTER=auv-deployment-entrypoint
 ARG CONTROLLER=DC-auv
+ARG ROS_DOMAIN_ID=0
 
 #Set user and home environment variables
 ENV DEBIAN_FRONTEND=noninteractive
@@ -79,6 +80,7 @@ RUN mkdir -p ${HOME}/ros_ws/src ${HOME}/ros_ws/data \
     echo "export ISAAC_ROS_WS=${HOME}/ros_ws" && \
     echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ${HOME}/.bashrc && \
     echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ${HOME}/.bashrc && \
+    echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> ${HOME}/.bashrc && \
     echo "export CYCLONEDDS_URI=file:///cycloneDDS_settings.xml" >> ${HOME}/.bashrc && \
     echo "net.ipv4.ipfrag_time=5" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
     echo "net.ipv4.ipfrag_high_thresh=134217728" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \

@@ -14,8 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adopted the amd64, arm64 platform convention across all containers.
 - Updated the version control of ISAAC ROS to use the latest commit as of release (In container controller script).
 - To use ISAAC ROS common, two changes had to be made to accomodate build errors on arm64.
-- Firstly, line 64, add ninja-build to the apt-get layer above. Otherwise failure will occur in next layer.
-- Second, < line 170, updated the version of Boost from 1.80 to 1.87, and chnaged the mirror from the existing one (Wouldn't work for me on amr64) to the latest version of sourceforge, and changed the layer to extract from the resultant zip instead.
+    - Firstly, line 64, add ninja-build to the apt-get layer above. Otherwise failure will occur in next layer.
+    - Second, < line 170, updated the version of Boost from 1.80 to 1.87, and chnaged the mirror from the existing one (Wouldn't work for me on amr64) to the latest version of sourceforge, and changed the layer to extract from the resultant zip instead.
 
 ### Known Issues
 - OpenCV_NV can't install without cudnn on Jetson, but installing a version of cudnn seems to prevent the ZED SDK installer from installing CuDNN.

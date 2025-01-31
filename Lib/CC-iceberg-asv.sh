@@ -1,68 +1,76 @@
+#Copyright [2025] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2025 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#Get access to common utilities
 source ./Lib/CC-common.sh
 
+#Function for building iceberg containers
 iceberg_build() {
-    USER_ID=$(id -u ${USER})
-    USER_GROUP_ID=$(id -g ${USER})
+    iceberg_plugin_check
 
-    #Declare docker args variable
-    declare -a DOCKER_ARGS=()
+    if [[ "$1" == "iceberg_asv_analysis" || "$1" == "iceberg-asv-analysis"|| "$1" == "iceberg_asv_deployment" || "$1" == "iceberg-asv-deployment" ]]; then
 
-    #Map host's display socket to docker
-    DOCKER_ARGS+=("--no-cache-filter end")
+        USER_ID=$(id -u ${USER})
+        USER_GROUP_ID=$(id -g ${USER})
 
-    iceberg_copy
+        #Declare docker args variable
+        declare -a DOCKER_ARGS=()
+
+        #Map host's display socket to docker
+        DOCKER_ARGS+=("--no-cache-filter end")
+
+        iceberg_copy
+    fi
 
     #Run appropriate build command, extra options can be added in this clause
     if [[ "$1" == "iceberg_asv_analysis" || "$1" == "iceberg-asv-analysis" ]]; then
-        echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-analysis.${RESET}"
+        echo -e "${FG_CYAN}[Iceberg-Plugin]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-analysis.${RESET}"
         ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.user.iceberg_asv_analysis \
-        --build_arg USERNAME=asv-analysis-user --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} \
+        --build_arg USERNAME=iceberg-asv-analysis-user --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} \
         --build_arg PLATFORM=$2 --build_arg ENTER=iceberg-asv-analysis-entrypoint --build_arg CONTROLLER=iceberg-asv-AC \
         --docker_arg ${DOCKER_ARGS} --image_name iceberg-asv-analysis:$2
 
     elif [[ "$1" == "iceberg_asv_deployment" || "$1" == "iceberg-asv-deployment" ]]; then
-        echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-deployment.${RESET}"
+        echo -e "${FG_CYAN}[Iceberg-Plugin]${FG_BLUE} Container Selected: ${FG_YELLOW}iceberg-asv-deployment.${RESET}"
         ./Build/Dependencies/isaac_ros_common/scripts/build_image_layers.sh --skip_registry_check --context_dir ${PWD}/Build --image_key base.ros2_humble.opencv_nv.realsense.user.iceberg_asv_deployment \
-        --build_arg USERNAME=asv-deployment --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} --build_arg PLATFORM=$2 \
+        --build_arg USERNAME=iceberg-asv-deployment --build_arg USER_UID=${USER_ID} --build_arg USER_GID=${USER_GROUP_ID} --build_arg PLATFORM=$2 \
         --build_arg PLATFORM=$2 --build_arg ENTER=iceberg-asv-deployment-entrypoint --build_arg CONTROLLER=iceberg-asv-DC \
         --docker_arg ${DOCKER_ARGS} --image_name iceberg-asv-deployment:$2
     fi
 
-    iceberg_clean
-}
-
-#Function for importing iceberg plugin
-iceberg_check() {
-    export IB_PLUGIN_PRESENT=$(test -d ./Build/AARDK-Iceberg-plugin)
-
-    if [[ $(test -d ../Build/AARDK-Iceberg-plugin/) ]]; then
-        echo -e "${FG_CYAN}[Container Controller]]${FG_RED} Error: Iceberg plugin not present, please re-clone the project recursively.${RESET}"
-
-    else
-        echo -e "${FG_CYAN}[Container Controller]]${FG_MAGENTA} Warning: Iceberg plugin not present, please re-clone the project recursively.${RESET}"
-        exit
+    if [[ "$1" == "iceberg_asv_analysis" || "$1" == "iceberg-asv-analysis"|| "$1" == "iceberg_asv_deployment" || "$1" == "iceberg-asv-deployment" ]]; then
+        iceberg_clean
     fi
 }
 
+#Function for checking if iceberg plugin exists
+iceberg_plugin_check() {
+    if [[ $(test -d ../Build/AARDK-Iceberg-plugin/) ]]; then
+        echo -e "${FG_CYAN}[Iceberg-Plugin]]${FG_GREEN} Error: Iceberg plugin not present, please re-clone the project recursively.${RESET}"
+
+    else
+        echo -e "${FG_CYAN}[Iceberg-Plugin]${FG_MAGENTA} Warning: Iceberg plugin not present, please re-clone the project recursively.${RESET}"
+        exit 1
+    fi
+}
+
+#Function for copying over iceberg files for build
 iceberg_copy() {
     cp -a ./Build/AARDK-Iceberg-plugin/Scripts/. ./Build/Scripts/
     cp ./Build/AARDK-Iceberg-plugin/Dockerfile.iceberg_asv_deployment ./Build/
-    cp ./Build/AARDK-Iceberg-plugin/Dockerfile.iceberg_asv_deployment ./Build/
+    cp ./Build/AARDK-Iceberg-plugin/Dockerfile.iceberg_asv_analysis ./Build/
 }
 
+#Function for cleaning the build directory of iceberg build artifacts
 iceberg_clean() {
     rm ./Build/Scripts/iceberg-asv*
     rm ./Build/Dockerfile.iceberg_asv*
 }
 
-#Function for cleaning the build directory of iceberg artifacts
-#iceberg_clean() {
-#
-#}
-
-#
+#Function for running iceberg containers
 iceberg_start() {
-    mkdir -p ./Data
+    iceberg_plugin_check
 
     docker volume create --driver local --opt type="none" --opt device="${PWD}/Data/ASV" --opt o="bind" "iceberg-asv-data-vol" > /dev/null
 
@@ -95,15 +103,16 @@ iceberg_start() {
     fi
 
     #Choosing which container to start
-    if [[ "${OPTARG}" == "asv_deployment" || "${OPTARG}" == "asv-deployment" ]]; then
-        echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: asv-deployment${RESET}"
+    if [[ "${OPTARG}" == "iceberg_asv_deployment" || "${OPTARG}" == "iceberg-asv-deployment" ]]; then
+        echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: iceberg-asv-deployment${RESET}"
 
         docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
         --volume=/usr/local/zed/settings:/usr/local/zed/settings:rw \
         --volume=/usr/local/zed/resources:/usr/local/zed/resources:rw \
-        --volume=deployment-vol:/home/asv-deployment/ros_ws/src/adtr2:rw \
-        --volume=asv-data-vol:/home/asv-deployment/ros_ws/data:rw \
+        --volume=iceberg-asv-data-vol:/home/asv-deployment/ros_ws/data:rw \
+        --volume=iceberg-asv-dev-vol:/home/iceberg-asv-deployment/ros_ws/src/general:rw \
+        --volume=iceberg-asv-vis-vol:/home/iceberg-asv-deployment/ros_ws/src/visualization:rw \
         --volume=/etc/localtime:/etc/localtime:ro \
-        ${DOCKER_ARGS[@]} asv-deployment:${PLAT}
+        ${DOCKER_ARGS[@]} iceberg-asv-deployment:${PLAT}
     fi
 }

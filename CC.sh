@@ -4,7 +4,7 @@
 #SPDX-FileCopyrightText: © 2025 Robert Fudge <rnfudge@mun.ca>
 #SPDX-License-Identifier: {Apache-2.0}
 
-#AARDK Container Controller V1.0 - Program developed by Robert Fudge, 2025
+#AARDK Container Controller
 
 #Package where config files are stored
 ADTR2_CONFIG=${PWD}/Projects/ADTR2/automata_deployment_toolkit_ros2/config
@@ -94,26 +94,11 @@ while getopts "b:c:de:ghin:s:" options; do
             echo -e "-l             Load            Load container from exported image"
             echo -e "-n             New Head        Launches an interactive bash prompt for desired container"
             echo -e "-s             Start           start desired container, pass in suffix of top-level dockerfile${RESET}"
-
         ;;
 
         #Initialize - Re-install toolkit components to ensure up-to-date state
         i)
-            echo -e ""
-
-            cd ./Dependencies/Software
-
-            #Install Nvidia CUDA Toolkit
-
-            if [ "${ARCH}" == "x86_64" ]; then
-                #Get zed sdk for x86_64
-                wget https://download.stereolabs.com/zedsdk/4.2/cu12/ubuntu22
-                mv ./ubuntu22 ./x86_64/zed-sdk_x86_64
-
-            elif [ "${ARCH}" == "aarch64" ]; then
-                wget https://download.stereolabs.com/zedsdk/4.2/l4t36.3/jetsons
-                mv ./jetsons ./Jetson/zed-sdk_aarch64
-            fi
+            sudo -e initialize_system
         ;;
 
         #Load - 
@@ -125,6 +110,9 @@ while getopts "b:c:de:ghin:s:" options; do
         #New Instance - 
         n)
             #Determine if any containers are running
+            #replace all blanks
+            OPTARG=${OPTARG//_/-}
+
             CONTAINER_LINE=$(docker container ls -la | grep -E "(^| )${OPTARG}:${PLAT}( |$)")
             CONT_ARR=""
             IFS=', ' read -r -a CONT_ARR <<< "${CONTAINER_LINE}"
