@@ -75,9 +75,9 @@ auv_start() {
 #Internal function for checking AUV GNSS
 __auv_gnss_check() {
     #GNSS reciever device check
-    if lsusb | grep -q "U-Blox \AG \[u-blox 8]" ; then
+    if lsusb | grep -q "U-Blox AG \[u-blox 8]" ; then
         echo -e  "${FG_CYAN}[Container Controller]${FG_BLUE} GNSS reciever detected by host system${RESET}"
-        GREP_LINE=$(lsusb | grep "U-Blox \AG \[u-blox 8]")
+        GREP_LINE=$(lsusb | grep "U-Blox AG \[u-blox 8]")
         IFS=', ' read -r -a gnss_array <<< "${GREP_LINE}"
         dev_id=$(get_dev_path ${gnss_array[5]})
 

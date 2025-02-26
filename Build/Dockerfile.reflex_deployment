@@ -70,6 +70,17 @@ fi
 
 WORKDIR ${HOME}/ros_ws
 
+#Clone and configure the OpenPose repo
+RUN git clone https://github.com/CMU-Perceptual-Computing-Lab/openpose && cd openpose\scripts\ubuntu &&\
+chmod +x install_deps.sh && sudo ./install_deps.sh
+
+#Install Torch2TRT and needed dependences for TRTPose
+RUN git clone https://github.com/NVIDIA-AI-IOT/torch2trt && cd torch2trt && sudo python3 setup.py install --plugins && \
+sudo pip3 install tqdm cython pycocotools && sudo apt-get install python3-matplotlib
+
+#Install TRTPose
+
+
 #Install prerequisites using rosdep
 RUN pip3 install -U --no-cache-dir transforms3d && sudo apt update && rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y

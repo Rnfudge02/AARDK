@@ -93,7 +93,7 @@ while getopts "b:c:de:ghin:s:" options; do
             echo -e "-i             Install         Initialize host software packages to well-known environment"
             echo -e "-l             Load            Load container from exported image"
             echo -e "-n             New Head        Launches an interactive bash prompt for desired container"
-            echo -e "-s             Start           start desired container, pass in suffix of top-level dockerfile${RESET}"
+            echo -e "-s             Start           Start desired container, pass in suffix of top-level dockerfile${RESET}"
         ;;
 
         #Initialize - Re-install toolkit components to ensure up-to-date state
@@ -103,7 +103,7 @@ while getopts "b:c:de:ghin:s:" options; do
 
         #Load - 
         l)
-            echo -e ""
+            echo -e "Loading system from .tar file"
 
         ;;
 

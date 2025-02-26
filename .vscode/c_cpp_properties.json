@@ -1,11 +1,9 @@
 {
     "configurations": [
         {
-            "name": "Desktop-Host",
+            "name": "Root",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/opt/ros/humble/include/**",
-                "${workspaceFolder}/ros_ws/src/zed-ros2-wrapper/zed-ros2-interfaces"
+                "${workspaceFolder}/**"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

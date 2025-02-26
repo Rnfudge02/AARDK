@@ -10,3 +10,12 @@
 [submodule "Build/AARDK-Iceberg-plugin"]
 	path = Build/AARDK-Iceberg-plugin
 	url = https://github.com/Rnfudge02/AARDK-Iceberg-plugin.git
+[submodule "Build/Dependencies/pico_sdk"]
+	path = Build/Dependencies/pico_sdk
+	url = https://github.com/raspberrypi/pico-sdk.git
+[submodule "Build/Dependencies/micro_ros_pico_sdk"]
+	path = Build/Dependencies/micro_ros_pico_sdk
+	url = https://github.com/micro-ROS/micro_ros_raspberrypi_pico_sdk.git
+[submodule "Projects/AMTR2"]
+	path = Projects/AMTR2
+	url = https://github.com/Rnfudge02/AMTR2.git

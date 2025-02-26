@@ -27,8 +27,8 @@ These commands change the IP fragment timeout to 5 seconds from 30 seconds, redu
 The project is designed to be interacted with via the CC.sh script. The following commands are supported as of the current release.
 
 - -b &rarr; Builds the container specified as argument, valid choices are: 
-  - asv-analysis
-  - asv-deployment
+  - iceberg-asv-analysis
+  - iceberg-asv-deployment
   - auv-analysis
   - auv-deployment
 - -c &rarr; Cross-builds the container for the other target architecture. same options as build. Currently not working
@@ -39,8 +39,8 @@ The project is designed to be interacted with via the CC.sh script. The followin
 - -i &rarr; Installs prerequisite libraries (Not-implemented).
 - -n &rarr; Spawns a new intercative window for specified container.
 - -s &rarr; Starts the selected container. During the start process, the ./CC.sh script should overwrite package configuration files with the appropriate /dev/bus/ directory to access the device (Symlinks won't work). valid choices are:
-  - asv-analysis
-  - auv-deployment
+  - iceberg-asv-analysis
+  - iceberg-asv-deployment
   - auv-analysis
   - auv-deployment
 
@@ -51,10 +51,10 @@ To add package-based tokens, API keys, etc, use the corresponding .env file, and
 
 ## Build Process
 ### Current Build Chains
-#### ASV Analysis
+#### Iceberg ASV Analysis
 base &rarr; ros2_humble &rarr; realsense &rarr; opencv_nv &rarr; user &rarr; asv_analysis
 
-#### ASV Deployment
+#### Iceberg ASV Deployment
 base &rarr; ros2_humble &rarr; opencv_nv &rarr; user &rarr; asv_deployment
 
 #### AUV Analysis
@@ -85,10 +85,13 @@ base &rarr; ros2_humble &rarr; opencv_nv &rarr; user &rarr; auv_deployment
 ## Issues
 - Docker compose compatibility is still a work-in-progress, not sure if it's entriely possible, perhaps with buildx plugin?
 
-- [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64 
+- [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64
+
+## Safety
+This is not a production level release, and due to the one-man development team, limited testing is done. If using for any mission-critical technology, ensure the fork is compliant with the applicable ISO standards.
 
 ## Contributing
-This is currently an open-source project maintained by Robert Fudge, 2025 -
+This is currently an open-source project maintained by Robert Fudge, 2024 - Present
 
 Pull requests are welcome.
 
@@ -119,7 +122,12 @@ Acer Predator Helios 300 (2019)
 - NVIDIA RTX 2060 Mobile (6GB)
 
 ### Embedded
-NVIDIA Jetson ORIN NX 8GB Engineering Reference kit
+NVIDIA Jetson Orin AGX 64GB Development Kit
+- ARM Cortex A78 x 12
+- 64GB 3200MHz DDR5 RAM
+- 1024 CUDA Cores (SM Version 8.7)
+
+NVIDIA Jetson ORIN NX 8GB Engineering Reference Kit
 - ARM Cortex A78 x 6
 - 8GB 3200MHz DDR5 RAM
 - 1024 CUDA Cores (SM Version 8.7)

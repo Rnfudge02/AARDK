@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "Jetson-Host",
             "includePath": [
                 "${workspaceFolder}/**",
                 "/opt/ros/humble/include/**",
