@@ -111,7 +111,7 @@ while getopts "b:c:de:ghin:s:" options; do
         n)
             #Determine if any containers are running
             #replace all blanks
-            OPTARG=${OPTARG//_/-}
+            #OPTARG=${OPTARG//_/-}
 
             CONTAINER_LINE=$(docker container ls -la | grep -E "(^| )${OPTARG}:${PLAT}( |$)")
             CONT_ARR=""
@@ -128,15 +128,16 @@ while getopts "b:c:de:ghin:s:" options; do
                 echo -e "${FG_CYAN}[Container Controller]${FG_RED} Error: Container isn't running, please start it before continuing${RESET}"
                 exit 4
             fi
-
         ;;
 
         #Start - Start the chosen container
         s)
             mkdir -p ./Data
 
-            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/ADTR2" --opt o="bind" "deployment-vol" > /dev/null
             docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/AATR2" --opt o="bind" "analysis-vol" > /dev/null
+            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/ADTR2" --opt o="bind" "deployment-vol" > /dev/null
+            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/AMTR2" --opt o="bind" "microcontroller-vol" > /dev/null
+            docker volume create --driver local --opt type="none" --opt device="${PWD}/Projects/ACVTR2" --opt o="bind" "computervision-vol" > /dev/null
 
             auv_start ${OPTARG}
             iceberg_start ${OPTARG}

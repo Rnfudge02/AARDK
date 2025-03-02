@@ -214,6 +214,9 @@ verify_rmw() {
         echo "net.ipv4.ipfrag_high_thresh=134217728" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
         echo "net.core.rmem_max=2147483647" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf
 
+        sudo sysctl -p /etc/sysctl.d/10-cyclone-max.conf
+        sudo sysctl --system
+
         #Copy the cycloneDDS file to the home directory of the user
         cp ./Build/.dev_settings/cycloneDDS_settings.xml ${HOME}/cycloneDDS_settings.xml
 

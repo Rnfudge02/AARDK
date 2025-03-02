@@ -82,13 +82,12 @@ RUN mkdir -p ${HOME}/ros_ws/src ${HOME}/ros_ws/data \
     echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ${HOME}/.bashrc && \
     echo "export ROS_DOMAIN_ID=${ROS_DOMAIN_ID}" >> ${HOME}/.bashrc && \
     echo "export CYCLONEDDS_URI=file:///cycloneDDS_settings.xml" >> ${HOME}/.bashrc && \
-    echo "net.ipv4.ipfrag_time=5" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
+    echo "net.ipv4.ipfrag_time=3" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
     echo "net.ipv4.ipfrag_high_thresh=134217728" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf && \
     echo "net.core.rmem_max=2147483647" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf
 
 #Copy entrypoint and config
 COPY Scripts/${ENTER}.sh /entrypoint.sh
-COPY .dev-settings/cycloneDDS_settings.xml /cycloneDDS_settings.xml
 COPY .dev-settings/c_cpp_properties_aarch64.json ../.vscode/c_cpp_properties_aarch64.json
 COPY .dev-settings/c_cpp_properties_x86_64.json ../.vscode/c_cpp_properties_x86_64.json
 COPY .dev-settings/settings.json ../.vscode/settings.json

@@ -44,14 +44,19 @@ auv_check() {
 
 #Function for starting specified AUV container
 auv_start() {
+
     #Create data volumes
     docker volume create --driver local --opt type="none" --opt device="${PWD}/Data/AUV" --opt o="bind" "auv-data-vol" > /dev/null
+
+    xhost +local:docker
 
     #Start the appropriate AUV container
     if [[ "${OPTARG}" == "auv_analysis" || "${OPTARG}" == "auv-analysis" ]]; then
         echo -e "${FG_CYAN}[Container Controller]${FG_BLUE} Container Selected: auv-analysis${RESET}"
 
         docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
+        -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v $HOME/.Xauthority:/root/.Xauthority:ro \
+        --volume=${PWD}/Build/.dev-settings/cycloneDDS_settings.xml /cycloneDDS_settings.xml \
         --volume=analysis-vol:/home/auv-analysis-user/ros_ws/src/aatr2:rw \
         --volume=auv-data-vol:/home/auv-analysis-user/ros_ws/data:rw \
         --volume=/etc/localtime:/etc/localtime:ro \
@@ -63,13 +68,19 @@ auv_start() {
         auv_check
 
         docker run -it --rm --privileged --network host --runtime nvidia --entrypoint=/entrypoint.sh -e TERM=xterm-256color -e QT_X11_NO_MITSHM=1 \
+        -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v $HOME/.Xauthority:/root/.Xauthority:ro \
+        --volume=${PWD}/Build/.dev-settings/cycloneDDS_settings.xml:/cycloneDDS_settings.xml:rw \
         --volume=/usr/local/zed/settings:/usr/local/zed/settings:rw \
         --volume=/usr/local/zed/resources:/usr/local/zed/resources:rw \
         --volume=deployment-vol:/home/auv-deployment/ros_ws/src/adtr2:rw \
+        --volume=microcontroller-vol:/home/auv-deployment/amtr2:rw \
+        --volume=computervision-vol:/home/auv-deployment/ros_ws/src/acvtr2:rw \
         --volume=auv-data-vol:/home/auv-deployment/ros_ws/data:rw \
         --volume=/etc/localtime:/etc/localtime:ro \
         ${DOCKER_ARGS[@]} auv-deployment:${PLAT}
     fi
+
+    xhost -local:docker 
 }
 
 #Internal function for checking AUV GNSS
