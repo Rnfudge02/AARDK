@@ -22,3 +22,6 @@
 [submodule "Projects/ACVTR2"]
 	path = Projects/ACVTR2
 	url = https://github.com/Rnfudge02/ACVTR2.git
+[submodule "Projects/ABMTR2"]
+	path = Projects/ABMTR2
+	url = https://github.com/Rnfudge02/ABMTR2

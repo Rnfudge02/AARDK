@@ -6,13 +6,13 @@ AARDK is a project aimed at easing the development of cross-platform robotics so
 2. Autonomous Surface Vehicle
 
 ## Installation
-1. Install Ubuntu 22.04 LTS [x86_64](https://releases.ubuntu.com/jammy/) or Jetpack 6.1 GA [aarch64](https://developer.nvidia.com/embedded/jetpack)
-2. Install the NVIDIA CUDA Toolkit [x86_64](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_network)  or [aarch64](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=aarch64-jetson&Compilation=Native&Distribution=Ubuntu&target_version=22.04&target_type=deb_network)
-3. Install the NVIDIA Container Toolkit [link](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
-4. Install Docker Engine for Ubuntu [link](https://docs.docker.com/engine/install/ubuntu/)
-5. Complete Docker Post-Install Steps for Linux [link](https://docs.docker.com/engine/install/linux-postinstall/)
-6. Install the ZED SDK V4.2 [link](https://www.stereolabs.com/en-ca/developers/release#82af3640d775)
-7. Clone the AARDK and Subprojects by running git clone with the --recursive or --recurse_submodules flag
+1. Install Ubuntu 22.04 LTS [x86_64](https://releases.ubuntu.com/jammy/) or Jetpack 6.1 GA. [aarch64](https://developer.nvidia.com/embedded/jetpack)
+2. Install the NVIDIA CUDA Toolkit. [x86_64](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Ubuntu&target_version=22.04&target_type=deb_network) or [aarch64](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=aarch64-jetson&Compilation=Native&Distribution=Ubuntu&target_version=22.04&target_type=deb_network)
+3. Install the NVIDIA Container Toolkit. [link](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+4. Install Docker Engine for Ubuntu. [link](https://docs.docker.com/engine/install/ubuntu/)
+5. Complete Docker Post-Install Steps for Linux. [link](https://docs.docker.com/engine/install/linux-postinstall/)
+6. Install the ZED SDK V4.2. [link](https://www.stereolabs.com/en-ca/developers/release#82af3640d775)
+7. Clone the AARDK and Subprojects by running git clone with the --recursive or --recurse_submodules flag.
 8. Run the following lines to modify kernel for larger message buffer, better timeouts, etc.
 
 ```bash
@@ -21,17 +21,24 @@ echo "net.ipv4.ipfrag_high_thresh=134217728" | sudo tee --append /etc/sysctl.d/1
 echo "net.core.rmem_max=2147483647" | sudo tee --append /etc/sysctl.d/10-cyclone-max.conf
 ```
 
-These commands change the IP fragment timeout to 5 seconds from 30 seconds, reducing time invalid messages continue to pollute the buffer. The second command expands the memory that the kernel can use to reassemble IP fragments to 128MiB. The third command expands the kernels recieve buffer size to 2GiB, whihc will allow for more messages to be kept in the queue. This may still require some tweaking to work well with Jetson models with low RAM (<=8GiB)
+These commands change the IP fragment timeout to 5 seconds from 30 seconds, reducing time invalid messages continue to pollute the buffer. The second command expands the memory that the kernel can use to reassemble IP fragments to 128MiB. The third command expands the kernels recieve buffer size to 2GiB, whihc will allow for more messages to be kept in the queue. This may still require some tweaking to work well with Jetson models with low RAM (<=8GiB).
 
 ## Usage
 The project is designed to be interacted with via the CC.sh script. The following commands are supported as of the current release.
+
+Note: Currently, I have not found a way to set the max kernel buffer recieve size (sysctl net.core.rmem_max) on startup, as it requires root privileges to change, before starting the project please run the command:
+```bash
+sudo systemctl restart systemd-sysctl
+```
+
+which should resolve the issue.
 
 - -b &rarr; Builds the container specified as argument, valid choices are: 
   - iceberg-asv-analysis
   - iceberg-asv-deployment
   - auv-analysis
   - auv-deployment
-- -c &rarr; Cross-builds the container for the other target architecture. same options as build. Currently not working
+- -c &rarr; Cross-builds the container for the other target architecture. same options as build. Currently not working.
 - -d &rarr; Destroys and removes all containers.
 - -e &rarr; Exports selected container.
 - -g &rarr; Grabs system dependency (ISSAC ROS Common).
@@ -70,7 +77,7 @@ base &rarr; ros2_humble &rarr; opencv_nv &rarr; user &rarr; auv_deployment
 
 [realsense](./Build/Dependencies/isaac_ros_common/docker/Dockerfile.realsense)&rarr; Contains build instructions for setting up the 
 
-[opencv_nv](./Build/Dockerfile.opencv_nv) &rarr; Contains platform-specific instructions for buildingh and installing OpenCV with support for NVIDIA CUDA, CUDNN, etc.
+[opencv_nv](./Build/Dockerfile.opencv_nv) &rarr; Contains platform-specific instructions for building and installing OpenCV with support for NVIDIA CUDA, CUDNN, etc.
 
 [user](./Build/Dockerfile.user) &rarr; Contains instructions for setting up the user in the container, and granting them the approrpiate permissions to access the hardware. This is a maintained version of a previous NVIDIA CORPORATION Dockerfile that is no longer supported, but essential for the project. Project specific changes have been implemented.
 
@@ -85,7 +92,7 @@ base &rarr; ros2_humble &rarr; opencv_nv &rarr; user &rarr; auv_deployment
 ## Issues
 - Docker compose compatibility is still a work-in-progress, not sure if it's entriely possible, perhaps with buildx plugin?
 
-- [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64
+- [opencv_nv](./Build/Dockerfile_opencv_nv) SFM is currently disabled on x86_64.
 
 ## Safety
 This is not a production level release, and due to the one-man development team, limited testing is done. If using for any mission-critical technology, ensure the fork is compliant with the applicable ISO standards.
@@ -122,7 +129,7 @@ Acer Predator Helios 300 (2019)
 - NVIDIA RTX 2060 Mobile (6GB)
 
 ### Embedded
-NVIDIA Jetson Orin AGX 64GB Development Kit
+NVIDIA Jetson Orin AGX 64GB Development Kit (Limited Testing done)
 - ARM Cortex A78 x 12
 - 64GB 3200MHz DDR5 RAM
 - 1024 CUDA Cores (SM Version 8.7)

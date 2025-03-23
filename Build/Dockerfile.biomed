@@ -1,0 +1,19 @@
+#Copyright [2025] [Robert Fudge]
+#SPDX-FileCopyrightText: © 2025 Robert Fudge <rnfudge@mun.ca>
+#SPDX-License-Identifier: {Apache-2.0}
+
+#Build Issac ROS Image
+#https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common/blob/main/
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+#Maintainer label
+LABEL maintainer="Robert Fudge <rnfudge@mun.ca>"
+LABEL version="3.0.0"
+
+#Install the Nvidia High Performance Compute (HPC) Software Development Kit (SDK)
+RUN  curl https://developer.download.nvidia.com/hpc-sdk/ubuntu/DEB-GPG-KEY-NVIDIA-HPC-SDK | sudo gpg --dearmor \
+-o /usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg && \
+echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | \
+sudo tee /etc/apt/sources.list.d/nvhpc.list  && sudo apt-get update && sudo apt-get install -y nvhpc-25-1
+
